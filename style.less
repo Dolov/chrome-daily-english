@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+#__plasmo {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.list-container  {
+
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--fallback-b1, oklch(var(--b1))),
+    var(--fallback-b1, oklch(var(--b1))) 13px,
+    var(--fallback-b2, oklch(var(--b2))) 13px,
+    var(--fallback-b2, oklch(var(--b2))) 14px
+  );
+}
