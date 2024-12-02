@@ -9,11 +9,14 @@ import React from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
+import Button from "~components/button"
 import {
   Fa6SolidMicrophoneLines,
   LsiconTriangleDownFilled
 } from "~components/Icon"
-import { isEnglishWord, parseJson, Storage } from "~utils"
+import { isEnglishWord, parseJson } from "~utils"
+import { Storage } from "~utils/constant"
+import { addFavorite } from "~utils/service"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -76,8 +79,10 @@ const Selector = () => {
       })
     if (!res) return
     const translation = parseJson(res.data.translation)
-    const basic = translation?.result?.[0]?.ec?.basic
-    setTranslation(basic)
+    setTranslation({
+      data: translation,
+      favorite: res.data.favorite
+    })
     setTranslating(false)
     setButtonVisible(false)
   }
@@ -111,6 +116,10 @@ const Translation = (props) => {
   const audioRef = React.useRef<HTMLAudioElement>(null)
   const [userInfo] = useStorage(Storage.USER)
   const [playType, setPlayType] = React.useState<"uk" | "us">(null)
+  const [favoriteLoading, setFavoriteLoading] = React.useState(false)
+  const { favorite } = translation || {}
+  const basic = translation?.data?.result?.[0]?.ec?.basic
+  const [isFavorite, setIsFavorite] = React.useState(favorite)
 
   const {
     explains = [],
@@ -120,7 +129,7 @@ const Translation = (props) => {
     ukPhonetic,
     usPhonetic,
     wordFormats = []
-  } = translation || {}
+  } = basic || {}
   const wfVisible = wordFormats.length > 0
 
   React.useEffect(() => {
@@ -129,6 +138,10 @@ const Translation = (props) => {
       setPlayType(null)
     }, 1000)
   }, [playType])
+
+  React.useEffect(() => {
+    setIsFavorite(favorite)
+  }, [translation])
 
   React.useEffect(() => {
     if (!position || !translation) return
@@ -176,15 +189,29 @@ const Translation = (props) => {
     setPlayType("us")
   }
 
-  const handleCollect = () => {
+  const handleCollect = async () => {
     if (!userInfo) {
       const loginPageUrl = chrome.runtime.getURL("tabs/login.html")
       window.open(loginPageUrl, "_blank")
       return
     }
+    setFavoriteLoading(true)
+    const res = await addFavorite({
+      word,
+      url: window.location.href
+    })
+      .finally(() => setFavoriteLoading(false))
+      .catch(() => {})
+    if (!res) return
+
+    if (res.success) {
+      setIsFavorite(!isFavorite)
+    }
   }
 
   if (!translation) return null
+
+  const buttonText = isFavorite ? "取消收藏" : "收藏"
 
   return (
     <div
@@ -270,9 +297,12 @@ const Translation = (props) => {
           )}
         </div>
         <div className="card-actions justify-end">
-          <button onClick={handleCollect} className="btn btn-primary">
-            收藏
-          </button>
+          <Button
+            loading={favoriteLoading}
+            onClick={handleCollect}
+            className="btn btn-primary">
+            {buttonText}
+          </Button>
         </div>
       </div>
     </div>
