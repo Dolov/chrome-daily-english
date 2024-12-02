@@ -1,3 +1,4 @@
+import classnames from "classnames"
 import cssText from "data-text:~style.less"
 import type {
   PlasmoCSConfig,
@@ -6,16 +7,18 @@ import type {
 } from "plasmo"
 import React from "react"
 
+import {
+  Fa6SolidMicrophoneLines,
+  LsiconTriangleDownFilled
+} from "~components/Icon"
 import { isEnglishWord, parseJson } from "~utils"
-
-const baseUrl = "http://localhost:3000/api/translate"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
   all_frames: true
 }
 
-const containerId = "daisy-english-container"
+const containerId = "daisy-english-container-1733110548587"
 export const getShadowHostId: PlasmoGetShadowHostId = () => containerId
 
 export const getStyle: PlasmoGetStyle = () => {
@@ -24,9 +27,13 @@ export const getStyle: PlasmoGetStyle = () => {
   return style
 }
 
+const baseUrl = "http://localhost:3000/api/translate"
+
+const tooltipId = "daisy-english-translation-tooltip"
+
 const Selector = () => {
-  const [position, setPosition] = React.useState(null)
   const [word, setWord] = React.useState(null)
+  const [position, setPosition] = React.useState(null)
   const [translation, setTranslation] = React.useState(null)
   const [translating, setTranslating] = React.useState(false)
   const [buttonVisible, setButtonVisible] = React.useState(false)
@@ -35,6 +42,7 @@ const Selector = () => {
     if (event.target.id === containerId) return
 
     setTranslation(null)
+    setButtonVisible(false)
     const selection = window.getSelection()
     if (!selection) return
     const selectedText = selection.toString().trim()
@@ -67,81 +75,194 @@ const Selector = () => {
     if (!res) return
     const translation = parseJson(res.data.translation)
     const basic = translation?.result?.[0]?.ec?.basic
-    console.log("translation?.result?.[0]?.ec: ", translation?.result?.[0]?.ec)
     setTranslation(basic)
     setTranslating(false)
     setButtonVisible(false)
   }
-  console.log("basic: ", translation)
 
-  const { x, y } = position || {}
+  const { x, y, height, width } = position || {}
 
-  const { explains = [], examType = [], wordFormats = [] } = translation || {}
-  const wfVisible = wordFormats.length > 0
-
+  const buttonPosition = {
+    top: y + height,
+    left: x + width
+  }
   return (
     <>
       {buttonVisible && (
         <button
           onClick={handleTranslate}
-          className="btn btn-sm fixed btn-circle btn-secondary"
-          style={{ top: y, left: x }}>
+          style={buttonPosition}
+          className="btn btn-sm fixed btn-circle btn-secondary">
           {!translating && <span>T</span>}
           {translating && (
             <span className="loading loading-ring loading-sm"></span>
           )}
         </button>
       )}
-      {translation && (
-        <div
-          style={{ top: y + 60, left: x, width: "450px" }}
-          className="absolute card bg-base-100 shadow-xl">
-          <div className="card-body p-6">
-            <h2 className="card-title">{word}</h2>
+      <Translation word={word} position={position} translation={translation} />
+    </>
+  )
+}
+
+const Translation = (props) => {
+  const { word, position, translation } = props
+  const audioRef = React.useRef<HTMLAudioElement>(null)
+  const [playType, setPlayType] = React.useState<"uk" | "us">(null)
+
+  const {
+    explains = [],
+    examType = [],
+    ukSpeech,
+    usSpeech,
+    ukPhonetic,
+    usPhonetic,
+    wordFormats = []
+  } = translation || {}
+  const wfVisible = wordFormats.length > 0
+
+  React.useEffect(() => {
+    if (!playType) return
+    setTimeout(() => {
+      setPlayType(null)
+    }, 1000)
+  }, [playType])
+
+  const handlePlayUkPhonetic = (event) => {
+    audioRef.current.src = ukSpeech
+    audioRef.current.play()
+    setPlayType("uk")
+  }
+
+  const handlePlayUsPhonetic = (event) => {
+    audioRef.current.src = usSpeech
+    audioRef.current.play()
+    setPlayType("us")
+  }
+
+  React.useEffect(() => {
+    if (!position || !translation) return
+    const hostElement = document.getElementById(containerId)
+    const shadowRoot = hostElement.shadowRoot
+    const tooltip: HTMLElement = shadowRoot.querySelector(`#${tooltipId}`)
+    if (!tooltip) return
+    tooltip.style.display = "block"
+    const tooltipWidth = tooltip ? tooltip.offsetWidth : 0
+    const tooltipHeight = tooltip ? tooltip.offsetHeight : 0
+
+    // 获取窗口的宽度和高度
+    const windowWidth = window.innerWidth
+    const windowHeight = window.innerHeight
+
+    const tolerant = 2
+    const mouseX = position.x
+    const mouseY = position.y
+    let newX = mouseX
+    let newY = mouseY + position.height + tolerant
+
+    // 如果 tooltip 超出了右边界，调整其位置
+    if (newX + tooltipWidth > windowWidth) {
+      newX = mouseX - tooltipWidth
+    }
+
+    // 如果 tooltip 超出了下边界，调整其位置
+    if (newY + tooltipHeight > windowHeight) {
+      newY = mouseY - tooltipHeight - tolerant
+    }
+
+    tooltip.style.top = `${newY}px`
+    tooltip.style.left = `${newX}px`
+  }, [position, translation])
+
+  if (!translation) return null
+
+  return (
+    <div
+      id={tooltipId}
+      style={{
+        width: 450,
+        maxWidth: 500
+      }}
+      className="fixed card bg-base-100 shadow-xl hidden">
+      <div className="card-body p-6">
+        <h2 className="card-title">
+          <span>{word}</span>
+          <audio ref={audioRef} className="hidden" src=""></audio>
+          {ukPhonetic && (
+            <button
+              onClick={handlePlayUkPhonetic}
+              className={classnames("btn btn-xs font-normal", {
+                "btn-secondary": playType === "uk"
+              })}>
+              <Fa6SolidMicrophoneLines
+                className={classnames("text-md text-primary", {
+                  "text-white": playType === "uk"
+                })}
+              />
+              英 {ukPhonetic}
+            </button>
+          )}
+          {usPhonetic && (
+            <button
+              onClick={handlePlayUsPhonetic}
+              className={classnames("btn btn-xs font-normal", {
+                "btn-secondary": playType === "us"
+              })}>
+              <Fa6SolidMicrophoneLines
+                className={classnames("text-md text-primary", {
+                  "text-white": playType === "us"
+                })}
+              />
+              美 {usPhonetic}
+            </button>
+          )}
+        </h2>
+        <div>
+          <div>
+            {explains.map((explain) => {
+              const { pos, trans } = explain
+              return (
+                <p key={pos} className="text-xs text-gray-600 mb-1 pl-1">
+                  <span className="text-gray-400 w-8 inline-block italic">
+                    {pos}
+                  </span>
+                  <span>{trans}</span>
+                </p>
+              )
+            })}
+          </div>
+          <div className="mt-2">
+            {examType.map((exam) => (
+              <div key={exam} className="badge text-xs text-gray-600 mr-1">
+                {exam}
+              </div>
+            ))}
+          </div>
+          {wfVisible && (
             <div>
-              <div>
-                {explains.map((explain) => {
-                  const { pos, trans } = explain
+              <div className="py-4 flex items-center">
+                <LsiconTriangleDownFilled className="mr-1" />
+                <h3 className="font-bold">变形词</h3>
+              </div>
+              <div className="text-xs grid grid-cols-3 gap-2">
+                {wordFormats.map((wordFormat) => {
+                  if (!wordFormat?.value) return null
+                  const { name, value } = wordFormat
                   return (
-                    <p key={pos} className="text-xs text-gray-600 mb-1 pl-1">
-                      <span className="text-gray-400 mr-4 italic">{pos}</span>
-                      <span>{trans}</span>
-                    </p>
+                    <div key={value} className="flex">
+                      <span className="text-gray-400 mr-2">{name}</span>
+                      <span className="text-gray-600">{value}</span>
+                    </div>
                   )
                 })}
               </div>
-              <div className="mt-2">
-                {examType.map((exam) => (
-                  <div key={exam} className="badge text-xs text-gray-600 mr-1">
-                    {exam}
-                  </div>
-                ))}
-              </div>
-              {wfVisible && (
-                <div>
-                  <div className="py-4 font-medium">变形词</div>
-                  <div className="text-xs grid grid-cols-3 gap-2">
-                    {wordFormats.map((wordFormat) => {
-                      if (!wordFormat?.value) return null
-                      const { name, value } = wordFormat
-                      return (
-                        <div key={value} className="flex">
-                          <span className="text-gray-400 mr-2">{name}</span>
-                          <span className="text-gray-600">{value}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
-            <div className="card-actions justify-end">
-              <button className="btn btn-primary">收藏</button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
-    </>
+        <div className="card-actions justify-end">
+          <button className="btn btn-primary">收藏</button>
+        </div>
+      </div>
+    </div>
   )
 }
 
