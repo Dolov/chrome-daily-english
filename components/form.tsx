@@ -69,8 +69,11 @@ interface FormProps {
   onChange?(values: Record<string, any>): void
 }
 
-interface FormRefProps {
-  validateValues: () => void
+export interface FormRefProps {
+  validateValues: () => {
+    values: Record<string, any>
+    errors: Record<string, any>
+  }
 }
 
 const Form: React.ForwardRefRenderFunction<FormRefProps, FormProps> = (

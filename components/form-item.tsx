@@ -3,8 +3,12 @@ import React from "react"
 import { Context } from "./form"
 
 const FormItem = (props) => {
-  const { values, onChange, errors, sendRules, triggerValidate } =
-    React.useContext(Context)
+  const context = React.useContext(Context)
+
+  const { onChange, sendRules, triggerValidate } = context
+
+  const values = context.values || {}
+  const errors = context.errors || {}
   const blured = React.useRef(false)
   const { children, name, label, rules } = props
   const value = values[name]
