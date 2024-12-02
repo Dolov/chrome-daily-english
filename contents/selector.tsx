@@ -7,11 +7,13 @@ import type {
 } from "plasmo"
 import React from "react"
 
+import { useStorage } from "@plasmohq/storage/hook"
+
 import {
   Fa6SolidMicrophoneLines,
   LsiconTriangleDownFilled
 } from "~components/Icon"
-import { isEnglishWord, parseJson } from "~utils"
+import { isEnglishWord, parseJson, Storage } from "~utils"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -107,6 +109,7 @@ const Selector = () => {
 const Translation = (props) => {
   const { word, position, translation } = props
   const audioRef = React.useRef<HTMLAudioElement>(null)
+  const [userInfo] = useStorage(Storage.USER)
   const [playType, setPlayType] = React.useState<"uk" | "us">(null)
 
   const {
@@ -126,18 +129,6 @@ const Translation = (props) => {
       setPlayType(null)
     }, 1000)
   }, [playType])
-
-  const handlePlayUkPhonetic = (event) => {
-    audioRef.current.src = ukSpeech
-    audioRef.current.play()
-    setPlayType("uk")
-  }
-
-  const handlePlayUsPhonetic = (event) => {
-    audioRef.current.src = usSpeech
-    audioRef.current.play()
-    setPlayType("us")
-  }
 
   React.useEffect(() => {
     if (!position || !translation) return
@@ -172,6 +163,26 @@ const Translation = (props) => {
     tooltip.style.top = `${newY}px`
     tooltip.style.left = `${newX}px`
   }, [position, translation])
+
+  const handlePlayUkPhonetic = (event) => {
+    audioRef.current.src = ukSpeech
+    audioRef.current.play()
+    setPlayType("uk")
+  }
+
+  const handlePlayUsPhonetic = (event) => {
+    audioRef.current.src = usSpeech
+    audioRef.current.play()
+    setPlayType("us")
+  }
+
+  const handleCollect = () => {
+    if (!userInfo) {
+      const loginPageUrl = chrome.runtime.getURL("tabs/login.html")
+      window.open(loginPageUrl, "_blank")
+      return
+    }
+  }
 
   if (!translation) return null
 
@@ -259,7 +270,9 @@ const Translation = (props) => {
           )}
         </div>
         <div className="card-actions justify-end">
-          <button className="btn btn-primary">收藏</button>
+          <button onClick={handleCollect} className="btn btn-primary">
+            收藏
+          </button>
         </div>
       </div>
     </div>

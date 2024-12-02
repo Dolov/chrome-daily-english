@@ -1,7 +1,3 @@
-export enum StorageKey {
-  WORDS = "words"
-}
-
 export const parseJson = (
   jsonStr: string,
   defaultValue?: Record<string, any>
