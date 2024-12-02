@@ -60,8 +60,9 @@ const Signup = (props) => {
     if (errors) return
 
     setLoading(true)
-    const res = await signup(values).finally(() => setLoading(false))
-    if (res.success) {
+    const res = await signup(values)
+    setLoading(false)
+    if (res?.success) {
       setUser(res.data)
       chrome.tabs.update({
         url: chrome.runtime.getURL(collectUrl)
@@ -151,8 +152,9 @@ const Signin = (props) => {
     const { values, errors } = form.current.validateValues()
     if (errors) return
     setLoading(true)
-    const res = await signin(values).finally(() => setLoading(false))
-    if (res.success) {
+    const res = await signin(values)
+    setLoading(false)
+    if (res?.success) {
       setUser(res.data)
       chrome.tabs.update({
         url: chrome.runtime.getURL(collectUrl)

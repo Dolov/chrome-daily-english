@@ -16,7 +16,7 @@ import {
 } from "~components/Icon"
 import { isEnglishWord, parseJson } from "~utils"
 import { Storage } from "~utils/constant"
-import { addFavorite } from "~utils/service"
+import { addFavorite, translate } from "~utils/service"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -31,8 +31,6 @@ export const getStyle: PlasmoGetStyle = () => {
   style.textContent = cssText.replaceAll(":root", ":host(plasmo-csui)")
   return style
 }
-
-const baseUrl = "http://localhost:3000/api/translate"
 
 const tooltipId = "daisy-english-translation-tooltip"
 
@@ -71,13 +69,12 @@ const Selector = () => {
     if (!word) return
     if (translating) return
     setTranslating(true)
-    const res = await fetch(`${baseUrl}?word=${word}`)
-      .then((res) => res.json())
-      .catch(() => {
-        setTranslating(false)
-        setButtonVisible(false)
-      })
-    if (!res) return
+    const res = await translate({ word })
+    if (!res) {
+      setTranslating(false)
+      setButtonVisible(false)
+      return
+    }
     const translation = parseJson(res.data.translation)
     setTranslation({
       data: translation,
@@ -189,7 +186,7 @@ const Translation = (props) => {
     setPlayType("us")
   }
 
-  const handleCollect = async () => {
+  const handleFavorite = async () => {
     if (!userInfo) {
       const loginPageUrl = chrome.runtime.getURL("tabs/login.html")
       window.open(loginPageUrl, "_blank")
@@ -200,13 +197,23 @@ const Translation = (props) => {
       word,
       url: window.location.href
     })
-      .finally(() => setFavoriteLoading(false))
-      .catch(() => {})
+    setFavoriteLoading(false)
     if (!res) return
 
     if (res.success) {
       setIsFavorite(!isFavorite)
     }
+  }
+
+  const openFavorite = () => {
+    if (!userInfo) {
+      const loginPageUrl = chrome.runtime.getURL("tabs/login.html")
+      window.open(loginPageUrl, "_blank")
+      return
+    }
+
+    const favoritePageUrl = chrome.runtime.getURL("tabs/favorite.html")
+    window.open(favoritePageUrl, "_blank")
   }
 
   if (!translation) return null
@@ -296,10 +303,15 @@ const Translation = (props) => {
             </div>
           )}
         </div>
-        <div className="card-actions justify-end">
+        <div className="card-actions justify-between">
+          <Button
+            onClick={openFavorite}
+            className="btn text-neutral btn-link px-0">
+            收藏集
+          </Button>
           <Button
             loading={favoriteLoading}
-            onClick={handleCollect}
+            onClick={handleFavorite}
             className="btn btn-primary">
             {buttonText}
           </Button>

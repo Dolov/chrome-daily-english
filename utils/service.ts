@@ -24,19 +24,35 @@ const request = async (url: string, method: string, data?: any) => {
 
   const options: RequestInit = {
     method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined
+    headers
+  }
+
+  if (method === "GET" && data) {
+    url += `?${new URLSearchParams(data).toString()}`
+  }
+  if (method === "POST" && data) {
+    options.body = JSON.stringify(data)
   }
 
   const response = await fetch(`${baseUrl}${url}`, options)
   return response.json()
 }
 
+const tryRequest = async (...args) => {
+  try {
+    const [url, method, data] = args
+    return await request(url, method, data)
+  } catch (error) {
+    console.error("API Request failed:", error)
+    return null
+  }
+}
+
 // 封装 GET 请求
-const GET = (url: string) => request(url, "GET")
+const GET = (url: string, data: any) => tryRequest(url, "GET", data)
 
 // 封装 POST 请求
-const POST = (url: string, data: any) => request(url, "POST", data)
+const POST = (url: string, data: any) => tryRequest(url, "POST", data)
 
 // API 请求封装
 export const sendotp = (data: any) => POST("/api/user/sendotp", data)
@@ -44,3 +60,5 @@ export const verifyotp = (data: any) => POST("/api/user/verifyotp", data)
 export const signup = (data: any) => POST("/api/user/signup", data)
 export const signin = (data: any) => POST("/api/user/signin", data)
 export const addFavorite = (data: any) => POST(`/api/favorite/add`, data)
+export const getFavoriteList = (data?: any) => GET(`/api/favorite/list`, data)
+export const translate = (data?: any) => GET(`/api/translate`, data)

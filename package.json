@@ -38,7 +38,8 @@
     "web_accessible_resources": [
       {
         "resources": [
-          "tabs/login.html"
+          "tabs/login.html",
+          "tabs/favorite.html"
         ],
         "matches": [
           "<all_urls>"
