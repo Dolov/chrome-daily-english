@@ -3,12 +3,15 @@ import React from "react"
 import { useStorage } from "@plasmohq/storage/hook"
 
 import Button from "~/components/button"
+import Form from "~/components/form"
 import FormItem from "~/components/form-item"
 import { signin, signup } from "~/utils/service"
 import message from "~components/message"
 import { Storage } from "~utils/constant"
 
 import "~/style.less"
+
+const collectUrl = "tabs/collect.html"
 
 const Login = () => {
   const [loginView, setLoginView] = React.useState(true)
@@ -63,7 +66,7 @@ const Signup = (props) => {
     if (res.success) {
       setUser(res.data)
       chrome.tabs.update({
-        url: chrome.runtime.getURL("tabs/collect.html")
+        url: chrome.runtime.getURL(collectUrl)
       })
       return
     }
@@ -71,12 +74,10 @@ const Signup = (props) => {
   }
 
   return (
-    <div>
+    <Form initialValues={userInfo} onChange={onChange}>
       <FormItem
-        name="name"
+        name="username"
         label="Name"
-        value={userInfo.username}
-        onChange={(value) => onChange({ username: value })}
         rules={[
           { required: true, message: "name is required" },
           { min: 3, message: "name must be at least 3 characters" },
@@ -91,8 +92,6 @@ const Signup = (props) => {
       <FormItem
         name="email"
         label="Email"
-        value={userInfo.email}
-        onChange={(value) => onChange({ email: value })}
         rules={[
           { required: true, message: "email is required" },
           {
@@ -109,8 +108,6 @@ const Signup = (props) => {
       <FormItem
         name="password"
         label="Password"
-        value={userInfo.password}
-        onChange={(value) => onChange({ password: value })}
         rules={[
           { required: true, message: "password is required" },
           {
@@ -140,7 +137,7 @@ const Signup = (props) => {
           Login to exsiting account
         </button>
       </div>
-    </div>
+    </Form>
   )
 }
 
@@ -161,7 +158,7 @@ const Signin = (props) => {
     if (res.success) {
       setUser(res.data)
       chrome.tabs.update({
-        url: chrome.runtime.getURL("tabs/collect.html")
+        url: chrome.runtime.getURL(collectUrl)
       })
       return
     }
@@ -169,12 +166,10 @@ const Signin = (props) => {
   }
 
   return (
-    <div>
+    <Form initialValues={userInfo} onChange={onChange}>
       <FormItem
         name="email"
         label="Email"
-        value={userInfo.email}
-        onChange={(value) => onChange({ email: value })}
         rules={[
           { required: true, message: "email is required" },
           {
@@ -192,8 +187,6 @@ const Signin = (props) => {
       <FormItem
         name="password"
         label="Password"
-        value={userInfo.password}
-        onChange={(value) => onChange({ password: value })}
         rules={[
           { required: true, message: "password is required" },
           {
@@ -227,7 +220,7 @@ const Signin = (props) => {
           Create new account
         </button>
       </div>
-    </div>
+    </Form>
   )
 }
 

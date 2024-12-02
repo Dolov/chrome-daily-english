@@ -4,7 +4,7 @@ function IndexPopup() {
   const [data, setData] = useState("")
 
   const open = () => {
-    chrome.tabs.create({ url: "/tabs/List.html" })
+    chrome.tabs.create({ url: "/tabs/login.html" })
   }
 
   return (
