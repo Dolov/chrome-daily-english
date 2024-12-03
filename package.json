@@ -1,6 +1,6 @@
 {
-  "name": "easy-english",
-  "displayName": "Easy english",
+  "name": "daily-english",
+  "displayName": "背单词",
   "version": "0.0.1",
   "description": "A basic Plasmo extension.",
   "author": "Plasmo Corp. <foss@plasmo.com>",
@@ -32,6 +32,10 @@
     "typescript": "5.3.3"
   },
   "manifest": {
+    "permissions": [
+      "contextMenus",
+      "tabs"
+    ],
     "host_permissions": [
       "https://*/*"
     ],

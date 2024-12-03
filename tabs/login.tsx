@@ -5,15 +5,18 @@ import { useStorage } from "@plasmohq/storage/hook"
 import Button from "~/components/button"
 import Form, { type FormRefProps } from "~/components/form"
 import FormItem from "~/components/form-item"
+import { useThemeChange } from "~/utils/hooks"
 import { signin, signup } from "~/utils/service"
+import Background from "~components/background"
 import message from "~components/message"
 import { Storage } from "~utils/constant"
 
 import "~/style.less"
 
-const collectUrl = "tabs/collect.html"
+const favoriteUrl = "tabs/favorite.html"
 
 const Login = () => {
+  useThemeChange()
   const [loginView, setLoginView] = React.useState(true)
   const [userInfo, setUserInfo] = React.useState({
     username: "",
@@ -28,22 +31,24 @@ const Login = () => {
     })
   }
   return (
-    <div className="h-full flex justify-center mt-[20vh]">
-      <div className="w-[400px]">
-        {loginView ? (
-          <Signin
-            userInfo={userInfo}
-            onChange={onChange}
-            toggleView={() => setLoginView(false)}
-          />
-        ) : (
-          <Signup
-            userInfo={userInfo}
-            onChange={onChange}
-            toggleView={() => setLoginView(true)}
-          />
-        )}
-      </div>
+    <div className="h-full flex justify-center">
+      <Background>
+        <div className="w-[400px] mt-[20vh] bg-base-100 p-6 rounded-lg">
+          {loginView ? (
+            <Signin
+              userInfo={userInfo}
+              onChange={onChange}
+              toggleView={() => setLoginView(false)}
+            />
+          ) : (
+            <Signup
+              userInfo={userInfo}
+              onChange={onChange}
+              toggleView={() => setLoginView(true)}
+            />
+          )}
+        </div>
+      </Background>
     </div>
   )
 }
@@ -65,7 +70,7 @@ const Signup = (props) => {
     if (res?.success) {
       setUser(res.data)
       chrome.tabs.update({
-        url: chrome.runtime.getURL(collectUrl)
+        url: chrome.runtime.getURL(favoriteUrl)
       })
       return
     }
@@ -157,7 +162,7 @@ const Signin = (props) => {
     if (res?.success) {
       setUser(res.data)
       chrome.tabs.update({
-        url: chrome.runtime.getURL(collectUrl)
+        url: chrome.runtime.getURL(favoriteUrl)
       })
       return
     }

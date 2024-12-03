@@ -8,15 +8,28 @@
   overflow: hidden;
 }
 
-.list-container  {
+@layer utilities {
+  .center {
+    @apply flex justify-center items-center;
+  }
 
-  background-image: repeating-linear-gradient(
-    45deg,
-    var(--fallback-b1, oklch(var(--b1))),
-    var(--fallback-b1, oklch(var(--b1))) 13px,
-    var(--fallback-b2, oklch(var(--b2))) 13px,
-    var(--fallback-b2, oklch(var(--b2))) 14px
-  );
+  .no-after::after {
+    content: none;
+  }
+
+  .text-ellipsis {
+    @apply overflow-hidden whitespace-nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .item-border {
+    @apply border border-base-content/20 outline outline-2 outline-offset-2 outline-transparent hover:border-base-content/40;
+  }
+
+  .item-border-active {
+    @apply !outline-base-content;
+  }
+
 }
 
 @keyframes fadeInOut {

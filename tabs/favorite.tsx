@@ -1,5 +1,6 @@
 import React from "react"
 
+import Background from "~components/background"
 import BasicTranslation from "~components/basic-translation"
 import Pagination from "~components/pagination"
 import { getFavoriteList } from "~utils/service"
@@ -50,29 +51,31 @@ const Favorite = () => {
   const { list = [] } = favoriteRes || {}
 
   return (
-    <div className="h-full flex flex-col p-4">
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-        {list.map((item) => {
-          const { id, word, translation } = item
-          return (
-            <div
-              key={id}
-              className="card bg-base-100 hover:shadow-xl border h-48">
-              <div className="card-body p-4 overflow-hidden">
-                <BasicTranslation word={word} translation={translation} />
+    <Background>
+      <div className="h-full flex flex-col p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          {list.map((item) => {
+            const { id, word, translation } = item
+            return (
+              <div
+                key={id}
+                className="card bg-base-100 hover:shadow-xl border h-48">
+                <div className="card-body p-4 overflow-hidden">
+                  <BasicTranslation word={word} translation={translation} />
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+        <div className="flex justify-end mt-6">
+          <Pagination
+            {...favoriteRes}
+            onPageChange={onPageChange}
+            {...queryParams}
+          />
+        </div>
       </div>
-      <div className="flex justify-end mt-6">
-        <Pagination
-          {...favoriteRes}
-          onPageChange={onPageChange}
-          {...queryParams}
-        />
-      </div>
-    </div>
+    </Background>
   )
 }
 
